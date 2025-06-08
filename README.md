@@ -21,41 +21,66 @@ Hekaton — это легковесная и гибкая система мон�
 
 ### Установка
 
-git clone https://github.com/muerewa/hekaton.git
-cd hekaton
-go mod tidy
-go build -o hekaton .
+- git clone https://github.com/muerewa/hekaton.git
+- cd hekaton
+- go mod tidy
+- go build -o hekaton .
 
 ### Конфигурация
 
 Создайте файл `config.yaml`:
-
-    name: "cpu_temp_high"
-    bash: "sensors | awk '/^Package id 0:/ {print int($4)}'"
-    compare:
+```
+- name: "cpu_temp_high"
+  bash: "sensors | awk '/^Package id 0:/ {print int($4)}'"
+  datatype: "int"           # Тип данных: int, float, string, bool
+  interval: "60s"           # Интервал проверки: 60s, 5m, 1h и т.д.
+  compare:
     operator: ">"
     value: 80
-    actions:
+  actions:
+    - type: "telegram"
+      params:
+        token: "BOT_TOKEN"
+        chat_id: "CHAT_ID"
+        message: "Температура CPU: {{.Result}}°C!"
+  timeout: 10               # (опционально) Таймаут выполнения bash-команды, секунд
+  retries: 2                # (опционально) Количество повторов при ошибке
+  enabled: true             # (опционально) Включена ли проверка
 
-        type: "telegram"
-        params:
-        token: "YOUR_BOT_TOKEN"
-        chat_id: "YOUR_CHAT_ID"
-        message: "🔥 Температура CPU: {{.Result}}°C!"
-
-    name: "disk_usage_critical"
-    bash: "df --output=pcent / | tail -1 | tr -dc '0-9'"
-    compare:
+- name: "disk_usage_critical"
+  bash: "df --output=pcent / | tail -1 | tr -dc '0-9'"
+  datatype: "int"
+  interval: "5m"
+  compare:
     operator: ">="
     value: 95
-    actions:
+  actions:
+    - type: "telegram"
+      params:
+        token: "BOT_TOKEN"
+        chat_id: "CHAT_ID"
+        message: "Диск заполнен на {{.Result}}%!"
+  timeout: 10
+  retries: 1
+  enabled: true
 
-        type: "telegram"
-        params:
-        token: "YOUR_BOT_TOKEN"
-        chat_id: "YOUR_CHAT_ID"
-        message: "💾 Диск заполнен на {{.Result}}%!"
-
+- name: "nginx_not_running"
+  bash: "systemctl is-active nginx"
+  datatype: "string"
+  interval: "2m"
+  compare:
+    operator: "!="
+    value: "active"
+  actions:
+    - type: "telegram"
+      params:
+        token: "BOT_TOKEN"
+        chat_id: "CHAT_ID"
+        message: "Сервис nginx не запущен, статус: {{.Result}}"
+  timeout: 5
+  retries: 3
+  enabled: false
+```
 
 ### Запуск
 
@@ -100,31 +125,41 @@ Windows
 
 ### Мониторинг сервисов
 
-    name: "nginx_status"
-    bash: "systemctl is-active nginx"
-    compare:
+```
+- name: "nginx_not_running"
+  bash: "systemctl is-active nginx"
+  datatype: "string"
+  interval: "2m"
+  compare:
     operator: "!="
     value: "active"
-    actions:
-
-        type: "telegram"
-        params:
+  actions:
+    - type: "telegram"
+      params:
         token: "BOT_TOKEN"
         chat_id: "CHAT_ID"
-        message: "🚨 Nginx не запущен! Статус: {{.Result}}"
+        message: "Сервис nginx не запущен, статус: {{.Result}}"
+  timeout: 5
+  retries: 3
+  enabled: false
+```
 
-
-### Мониторинг памяти
-
-    name: "memory_usage"
-    bash: "free | awk '/^Mem:/ {print int($3/$2 * 100)}'"
-    compare:
+### Мониторинг диска
+```
+- name: "disk_usage_critical"
+  bash: "df --output=pcent / | tail -1 | tr -dc '0-9'"
+  datatype: "int"
+  interval: "5m"
+  compare:
     operator: ">="
-    value: 90
-    actions:
-
-        type: "telegram"
-        params:
+    value: 95
+  actions:
+    - type: "telegram"
+      params:
         token: "BOT_TOKEN"
         chat_id: "CHAT_ID"
-        message: "⚠️ Использование памяти: {{.Result}}%"
+        message: "Диск заполнен на {{.Result}}%!"
+  timeout: 10
+  retries: 1
+  enabled: true
+```
