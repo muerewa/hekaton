@@ -61,8 +61,6 @@ go build -o hekaton .
 
 ./argusyaml -config config.yaml
 
-text
-
 ## Структура конфигурации
 
 | Поле               | Описание                         | Тип           | Обязательно |
@@ -92,15 +90,11 @@ text
 
 ## Сборка для разных платформ
 
-Linux
-
-GOOS=linux GOARCH=amd64 go build -o argusyaml-linux .
+GOOS=linux GOARCH=amd64 go build -o hekaton-linux .
 macOS
 
-GOOS=darwin GOARCH=amd64 go build -o argusyaml-macos .
+GOOS=darwin GOARCH=amd64 go build -o hekaton-macos .
 Windows
-
-GOOS=windows GOARCH=amd64 go build -o argusyaml.exe .
 
 ## Примеры использования
 
