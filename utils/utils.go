@@ -27,7 +27,7 @@ func RunBashCommand(cmd string) (string, error) {
 	return strings.TrimSpace(string(output)), err
 }
 
-func Compare(result string, comp structs.Compare) (bool, error) {
+func Compare(result string, comp *structs.Compare) (bool, error) {
 	// Попытка численного сравнения
 	if numRes, err := strconv.Atoi(result); err == nil {
 		if numComp, ok := comp.Value.(int); ok {

@@ -26,7 +26,7 @@ func main() {
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	for _, monitor := range monitors {
-		go core.RunMonitor(ctx, monitor)
+		go core.RunMonitor(ctx, &monitor)
 	}
 
 	<-sigChan

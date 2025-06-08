@@ -16,4 +16,6 @@ type Monitor struct {
 	Compare  Compare  `yaml:"compare"`
 	Actions  []Action `yaml:"actions"`
 	Interval int      `yaml:"interval,omitempty"` // Интервал в секундах (опционально)
+	Timeout  int      `yaml:"timeout,omitempty"`
+	Retries  int      `yaml:"retries,omitempty"`
 }
