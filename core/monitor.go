@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -9,30 +10,35 @@ import (
 	"github.com/muerewa/hekaton/utils"
 )
 
-func RunMonitor(monitor structs.Monitor) {
+func RunMonitor(ctx context.Context, monitor structs.Monitor) {
 	interval := time.Second
 	if monitor.Interval > 0 {
 		interval = time.Duration(monitor.Interval) * time.Second
 	}
+	ticker := time.Tick(interval)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker:
+			result, err := utils.RunBashCommand(monitor.Bash)
+			if err != nil {
+				log.Printf("%s: command error: %v", monitor.Name, err)
+				continue
+			}
 
-	for range time.Tick(interval) {
-		result, err := utils.RunBashCommand(monitor.Bash)
-		if err != nil {
-			log.Printf("%s: command error: %v", monitor.Name, err)
-			continue
-		}
+			matched, err := utils.Compare(result, monitor.Compare)
+			if err != nil {
+				log.Printf("%s: compare error: %v", monitor.Name, err)
+				continue
+			}
 
-		matched, err := utils.Compare(result, monitor.Compare)
-		if err != nil {
-			log.Printf("%s: compare error: %v", monitor.Name, err)
-			continue
-		}
-
-		if matched {
-			for _, action := range monitor.Actions {
-				switch action.Type {
-				case "bash":
-					fmt.Println(utils.RunBashCommand(action.Params["command"]))
+			if matched {
+				for _, action := range monitor.Actions {
+					switch action.Type {
+					case "bash":
+						fmt.Println(utils.RunBashCommand(action.Params["command"]))
+					}
 				}
 			}
 		}
