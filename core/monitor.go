@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/muerewa/hekaton/actions"
 	"github.com/muerewa/hekaton/structs"
 	"github.com/muerewa/hekaton/utils"
 )
@@ -39,6 +40,8 @@ func RunMonitor(ctx context.Context, monitor *structs.Monitor) {
 					case "bash":
 						res, _ := utils.RunBashCommand(action.Params["command"])
 						fmt.Println(res)
+					case "telegram":
+						actions.SendTelegramMessage(action.Params, result)
 					}
 				}
 			}
