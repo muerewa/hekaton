@@ -41,7 +41,10 @@ func RunMonitor(ctx context.Context, monitor *structs.Monitor) {
 						res, _ := utils.RunBashCommand(action.Params["command"])
 						fmt.Println(res)
 					case "telegram":
-						actions.SendTelegramMessage(action.Params, result)
+						err := actions.SendTelegramMessage(monitor.Name, action.Params, result)
+						if err != nil {
+							log.Printf("%s: telegram error: %v", monitor.Name, err)
+						}
 					}
 				}
 			}
