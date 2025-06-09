@@ -28,7 +28,7 @@ func RunBashCommand(cmd string) (string, error) {
 }
 
 func Compare(result string, comp *structs.Compare) (bool, error) {
-	// Попытка численного сравнения
+	// Integer comparison
 	if numRes, err := strconv.Atoi(result); err == nil {
 		if numComp, ok := comp.Value.(int); ok {
 			switch comp.Operator {
@@ -44,7 +44,7 @@ func Compare(result string, comp *structs.Compare) (bool, error) {
 		}
 	}
 
-	// Строковое сравнение
+	// String comparison
 	strComp := fmt.Sprintf("%v", comp.Value)
 	switch comp.Operator {
 	case "==":

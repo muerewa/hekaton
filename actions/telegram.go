@@ -9,7 +9,7 @@ import (
 )
 
 func TemplateHandler(message, result string) (string, error) {
-	// Обработка шаблона сообщения
+	// Handling message template
 	tmpl, err := template.New("message").Parse(message)
 	if err != nil {
 		return "", fmt.Errorf("parsing template error: %v", err)
@@ -22,6 +22,7 @@ func TemplateHandler(message, result string) (string, error) {
 		Result: result,
 	}
 
+	// Parse template
 	err = tmpl.Execute(&res, data)
 	if err != nil {
 		return "", fmt.Errorf("parsing template error: %v", err)
@@ -30,12 +31,12 @@ func TemplateHandler(message, result string) (string, error) {
 }
 
 func SendTelegramMessage(name string, params map[string]string, result string) error {
-	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", params["token"])
-	template, err := TemplateHandler(params["message"], result)
+	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", params["token"]) // Set url
+	template, err := TemplateHandler(params["message"], result)                       // Get template
 	if err != nil {
 		return err
 	}
-	text := fmt.Sprintf("%s: %s", name, template)
+	text := fmt.Sprintf("%s: %s", name, template) // Generate text message
 
 	payload := map[string]string{
 		"chat_id": params["chat_id"],
@@ -43,7 +44,7 @@ func SendTelegramMessage(name string, params map[string]string, result string) e
 	}
 
 	jsonData, _ := json.Marshal(payload)
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData)) // Send data
 	if err != nil {
 		return err
 	}

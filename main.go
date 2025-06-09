@@ -12,24 +12,26 @@ import (
 )
 
 func main() {
+	// parsing config
 	monitors, err := utils.LoadConfig("config.yaml")
 	if err != nil {
 		log.Fatalf("Config error: %v", err)
 	}
 
-	// Создаем контекст для graceful shutdown
+	// Creating config for graceful shutdown
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Обработка сигналов
+	// Signals handling
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
+	// For every rule run a goroutine
 	for _, monitor := range monitors {
 		go core.RunMonitor(ctx, &monitor)
 	}
 
-	<-sigChan
+	<-sigChan // wait for a stop signal
 	log.Println("Получен сигнал остановки, завершаем работу...")
 	cancel()
 }

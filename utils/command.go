@@ -11,9 +11,10 @@ import (
 	"github.com/muerewa/hekaton/structs"
 )
 
+// Run bash command with retry and timeout logic
 func VerifyBash(monitor *structs.Monitor) (string, error) {
-	retries := max(1, monitor.Retries)
-	timeout := time.Duration(max(1, monitor.Timeout)) * time.Second
+	retries := max(1, monitor.Retries)                              // Retry count
+	timeout := time.Duration(max(1, monitor.Timeout)) * time.Second // Timeout
 	var (
 		result string
 		err    error
@@ -22,7 +23,7 @@ func VerifyBash(monitor *structs.Monitor) (string, error) {
 	for attempt := 0; attempt < retries; attempt++ {
 		result, err = RunCommandWithTimeout(monitor.Bash, time.Duration(timeout))
 		if err != nil {
-			// Добавляем информацию о попытке только если будут еще ретраи
+			// Add info if there is extra retries
 			retrySuffix := ""
 			if attempt < retries-1 {
 				retrySuffix = "; retrying..."
