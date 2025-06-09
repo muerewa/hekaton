@@ -13,13 +13,15 @@ import (
 
 // Run bash command with retry and timeout logic
 func VerifyBash(monitor *structs.Monitor) (string, error) {
-	retries := max(1, monitor.Retries)                              // Retry count
-	timeout := time.Duration(max(1, monitor.Timeout)) * time.Second // Timeout
+	retries := max(1, monitor.Retries) // Retry count
 	var (
 		result string
 		err    error
 	)
-
+	timeout, err := ParseDurationWithDefaults(monitor.Timeout)
+	if err != nil {
+		return "", fmt.Errorf("%s: timeout format error: %v; exit", monitor.Name, err)
+	}
 	for attempt := 0; attempt < retries; attempt++ {
 		result, err = RunCommandWithTimeout(monitor.Bash, time.Duration(timeout))
 		if err != nil {
@@ -27,7 +29,7 @@ func VerifyBash(monitor *structs.Monitor) (string, error) {
 			retrySuffix := ""
 			if attempt < retries-1 {
 				retrySuffix = "; retrying..."
-			}
+			} // add suffix
 			log.Printf("%s: command error (attempt %d/%d): %v%s",
 				monitor.Name, attempt+1, retries, err, retrySuffix)
 		}
@@ -35,6 +37,7 @@ func VerifyBash(monitor *structs.Monitor) (string, error) {
 	return result, err
 }
 
+// Run command with timeout
 func RunCommandWithTimeout(command string, timeout time.Duration) (string, error) {
 	// Create context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)

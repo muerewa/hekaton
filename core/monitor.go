@@ -13,9 +13,9 @@ import (
 
 func RunMonitor(ctx context.Context, monitor *structs.Monitor) {
 	// Setting interval value
-	interval := time.Second
-	if monitor.Interval > 0 {
-		interval = time.Duration(monitor.Interval) * time.Second
+	interval, err := utils.ParseDurationWithDefaults(monitor.Interval)
+	if err != nil {
+		log.Printf("%s: interval format error: %v; exit...", monitor.Name, err)
 	}
 	// Create a ticker
 	ticker := time.Tick(interval)
