@@ -140,7 +140,6 @@ Windows
         message: "Сервис nginx не запущен, статус: {{.Result}}"
   timeout: 5
   retries: 3
-  enabled: false
 ```
 
 ### Мониторинг диска
@@ -160,5 +159,4 @@ Windows
         message: "Диск заполнен на {{.Result}}%!"
   timeout: 10
   retries: 1
-  enabled: true
 ```
