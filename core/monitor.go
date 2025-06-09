@@ -10,28 +10,6 @@ import (
 	"github.com/muerewa/hekaton/utils"
 )
 
-func VerifyBash(monitor *structs.Monitor) (string, error) {
-	retries := max(1, monitor.Retries)
-	var (
-		result string
-		err    error
-	)
-
-	for attempt := 0; attempt < retries; attempt++ {
-		result, err = utils.RunBashCommand(monitor.Bash)
-		if err != nil {
-			// Добавляем информацию о попытке только если будут еще ретраи
-			retrySuffix := ""
-			if attempt < retries-1 {
-				retrySuffix = "; retrying..."
-			}
-			log.Printf("%s: command error (attempt %d/%d): %v%s",
-				monitor.Name, attempt+1, retries, err, retrySuffix)
-		}
-	}
-	return result, err
-}
-
 func RunMonitor(ctx context.Context, monitor *structs.Monitor) {
 	interval := time.Second
 	if monitor.Interval > 0 {
@@ -43,7 +21,7 @@ func RunMonitor(ctx context.Context, monitor *structs.Monitor) {
 		case <-ctx.Done():
 			return
 		case <-ticker:
-			result, err := VerifyBash(monitor)
+			result, err := utils.VerifyBash(monitor)
 			if err != nil {
 				log.Printf("%s: command error: %v; exit...", monitor.Name, err)
 				return
