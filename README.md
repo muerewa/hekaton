@@ -1,3 +1,5 @@
+[![CI сборка](https://github.com/muerewa/hekaton/actions/workflows/go.yml/badge.svg)](https://github.com/muerewa/hekaton/actions/workflows/go.yml)
+
 # Hekaton - Система мониторинга с YAML конфигурацией
 
 Hekaton — это легковесная и гибкая система мониторинга, написанная на Go, которая позволяет отслеживать состояние сервера через выполнение bash-команд и отправлять уведомления при срабатывании заданных условий.
