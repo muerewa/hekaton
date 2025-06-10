@@ -11,11 +11,48 @@ import (
 	"github.com/muerewa/hekaton/utils"
 )
 
+// Executes actions
+func ExecuteActions(ctx context.Context, monitor *structs.Monitor, result string) {
+	for _, action := range monitor.Actions {
+		switch action.Type {
+		case "bash":
+			res, _ := utils.RunBashCommand(action.Params["command"])
+			fmt.Println(res)
+		case "telegram":
+			// Send message to Telegram
+			err := actions.SendTelegramMessage(monitor.Name, action.Params, result)
+			if err != nil {
+				log.Printf("%s: telegram error: %v", monitor.Name, err)
+			}
+		}
+	}
+}
+
+// Processes one monitor tick
+func ProcessMonitorTick(ctx context.Context, monitor *structs.Monitor) error {
+	result, err := utils.VerifyBash(monitor) // Run bash command
+	if err != nil {
+		return fmt.Errorf("%s: command error: %v; exit", monitor.Name, err)
+	}
+
+	matched, err := utils.Compare(result, &monitor.Compare) // Compare result
+	if err != nil {
+		return fmt.Errorf("%s: compare error: %v", monitor.Name, err)
+	}
+
+	if matched {
+		ExecuteActions(ctx, monitor, result)
+	}
+	return nil
+}
+
+// Main monitor gouroutine function
 func RunMonitor(ctx context.Context, monitor *structs.Monitor) {
 	// Setting interval value
 	interval, err := utils.ParseDurationWithDefaults(monitor.Interval)
 	if err != nil {
 		log.Printf("%s: interval format error: %v; exit...", monitor.Name, err)
+		return
 	}
 	// Create a ticker
 	ticker := time.Tick(interval)
@@ -24,32 +61,10 @@ func RunMonitor(ctx context.Context, monitor *structs.Monitor) {
 		case <-ctx.Done():
 			return
 		case <-ticker:
-			result, err := utils.VerifyBash(monitor) // Run bash command
+			err = ProcessMonitorTick(ctx, monitor)
 			if err != nil {
-				log.Printf("%s: command error: %v; exit...", monitor.Name, err)
+				log.Print(err)
 				return
-			}
-
-			matched, err := utils.Compare(result, &monitor.Compare) // Compare result
-			if err != nil {
-				log.Printf("%s: compare error: %v", monitor.Name, err)
-				continue
-			}
-
-			if matched {
-				for _, action := range monitor.Actions {
-					switch action.Type {
-					case "bash":
-						res, _ := utils.RunBashCommand(action.Params["command"])
-						fmt.Println(res)
-					case "telegram":
-						// Send message to Telegram
-						err := actions.SendTelegramMessage(monitor.Name, action.Params, result)
-						if err != nil {
-							log.Printf("%s: telegram error: %v", monitor.Name, err)
-						}
-					}
-				}
 			}
 		}
 	}
