@@ -71,11 +71,15 @@ Hekaton — это легковесная и гибкая система мон�
     operator: "!="
     value: "active"
   actions:
-    - type: "telegram"
       params:
-        token: "BOT_TOKEN"
-        chat_id: "CHAT_ID"
-        message: "Сервис nginx не запущен, статус: {{.Result}}"
+        smtp_host: "smtp.gmail.com"
+        smtp_port: "587"
+        username: "your-email@gmail.com"
+        password: "your-app-password" # Используйте пароль приложения!
+        from: "Monitoring System <monitor@example.com>"
+        to: "admin@example.com,alert@example.com"
+        subject: "Nginx not running"
+        body: "Nginx status: {{.Result}}%!"
   timeout: 5
   retries: 3
 ```
