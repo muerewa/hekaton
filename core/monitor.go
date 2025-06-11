@@ -24,6 +24,11 @@ func ExecuteActions(ctx context.Context, monitor *structs.Monitor, result string
 			if err != nil {
 				log.Printf("%s: telegram error: %v", monitor.Name, err)
 			}
+		case "email":
+			err := actions.SendEmail(action.Params, result)
+			if err != nil {
+				log.Printf("%s: email error: %v", monitor.Name, err)
+			}
 		}
 	}
 }
