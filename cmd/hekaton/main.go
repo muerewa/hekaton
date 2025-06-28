@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/muerewa/hekaton/internal/app"
@@ -34,12 +35,24 @@ func main() {
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
+	var wg sync.WaitGroup
+
 	// For every rule run a goroutine
 	for _, monitor := range monitors {
-		go app.RunMonitor(ctx, &app.MonitorRule{monitor, logger})
+		wg.Add(1)
+		go app.RunMonitor(ctx, &wg, &app.MonitorRule{monitor, logger})
 	}
-
-	<-sigChan // Wait for a stop signal
-	log.Println("Получен сигнал остановки, завершаем работу...")
-	cancel()
+	waitChan := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(waitChan)
+	}()
+	select {
+	case <-sigChan:
+		logger.Info("Получен сигнал остановки, завершаем работу...")
+		cancel()
+		<-waitChan
+	case <-waitChan:
+		logger.Info("Все мониторы были завершены")
+	}
 }

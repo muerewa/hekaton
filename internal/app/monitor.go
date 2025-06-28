@@ -7,6 +7,7 @@ import (
 	"github.com/muerewa/hekaton/internal/pkg/command"
 	"github.com/muerewa/hekaton/internal/pkg/helpers"
 	"log/slog"
+	"sync"
 	"time"
 )
 
@@ -78,13 +79,16 @@ func ProcessMonitorTick(ctx context.Context, monitor *MonitorRule) error {
 }
 
 // Main monitor gouroutine function
-func RunMonitor(ctx context.Context, monitor *MonitorRule) {
+func RunMonitor(ctx context.Context, wg *sync.WaitGroup, monitor *MonitorRule) {
+	defer wg.Done()
+
 	// Setting interval value
 	interval, err := helpers.ParseDurationWithDefaults(monitor.Interval)
 	if err != nil {
 		monitor.Log.Error(err.Error(), "name", monitor.Name)
 		return
 	}
+
 	// Create a ticker
 	ticker := time.Tick(interval)
 	for {
