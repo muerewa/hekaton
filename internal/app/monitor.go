@@ -41,7 +41,11 @@ func ExecuteActions(ctx context.Context, monitor *MonitorRule, result string) {
 	for _, action := range monitor.Actions {
 		switch action.Type {
 		case "bash":
-			res, _ := command.RunBashCommand(action.Params["command"])
+			res, err := command.RunBashCommand(action.Params["command"])
+			if err != nil {
+				monitor.Log.Error(err.Error(), "name", monitor.Name)
+				continue
+			}
 			fmt.Println(res)
 		case "telegram":
 			// Send message to Telegram

@@ -12,7 +12,10 @@ import (
 
 func RunBashCommand(cmd string) (string, error) {
 	output, err := exec.Command("bash", "-c", cmd).CombinedOutput()
-	return strings.TrimSpace(string(output)), err
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(output)), nil
 }
 
 // Run bash command with retry and timeout logic

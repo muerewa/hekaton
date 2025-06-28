@@ -12,6 +12,7 @@ import (
 	"syscall"
 
 	"github.com/muerewa/hekaton/internal/app"
+	_ "net/http/pprof"
 )
 
 func main() {
@@ -40,7 +41,8 @@ func main() {
 	// For every rule run a goroutine
 	for _, monitor := range monitors {
 		wg.Add(1)
-		go app.RunMonitor(ctx, &wg, &app.MonitorRule{monitor, logger})
+		go app.RunMonitor(ctx, &wg, &app.MonitorRule{
+			Monitor: monitor, Log: logger})
 	}
 	waitChan := make(chan struct{})
 	go func() {
