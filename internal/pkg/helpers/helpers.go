@@ -1,19 +1,10 @@
-package utils
+package helpers
 
 import (
 	"fmt"
-	"os/exec"
 	"strconv"
-	"strings"
 	"time"
-
-	"github.com/muerewa/hekaton/structs"
 )
-
-func RunBashCommand(cmd string) (string, error) {
-	output, err := exec.Command("bash", "-c", cmd).CombinedOutput()
-	return strings.TrimSpace(string(output)), err
-}
 
 // ParseDurationWithDefaults parses duration strings with intelligent defaults
 func ParseDurationWithDefaults(s string) (time.Duration, error) {
@@ -37,11 +28,11 @@ func ParseDurationWithDefaults(s string) (time.Duration, error) {
 	return 0, err
 }
 
-func Compare(result string, comp *structs.Compare) (bool, error) {
+func CompareOperator(result string, operator string, value any) (bool, error) {
 	// Integer comparison
 	if numRes, err := strconv.Atoi(result); err == nil {
-		if numComp, ok := comp.Value.(int); ok {
-			switch comp.Operator {
+		if numComp, ok := value.(int); ok {
+			switch operator {
 			case ">":
 				return numRes > numComp, nil
 			case ">=":
@@ -55,8 +46,8 @@ func Compare(result string, comp *structs.Compare) (bool, error) {
 	}
 
 	// String comparison
-	strComp := fmt.Sprintf("%v", comp.Value)
-	switch comp.Operator {
+	strComp := fmt.Sprintf("%v", value)
+	switch operator {
 	case "==":
 		return result == strComp, nil
 	case "!=":

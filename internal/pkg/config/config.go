@@ -1,10 +1,10 @@
-package utils
+package config
 
 import (
+	"github.com/muerewa/hekaton/internal/app"
 	"os"
 	"regexp"
 
-	"github.com/muerewa/hekaton/structs"
 	"gopkg.in/yaml.v2"
 )
 
@@ -32,14 +32,14 @@ func expandEnvVars(content []byte) []byte {
 	return []byte(strContent)
 }
 
-func LoadConfig(path string) ([]structs.Monitor, error) {
+func LoadConfig(path string) ([]app.Monitor, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
 	expandedContent := expandEnvVars(data)
-	var monitors []structs.Monitor
+	var monitors []app.Monitor
 	err = yaml.Unmarshal(expandedContent, &monitors)
 	return monitors, err
 }

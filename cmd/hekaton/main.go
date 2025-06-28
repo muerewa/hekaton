@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/muerewa/hekaton/internal/pkg/config"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/muerewa/hekaton/core"
-	"github.com/muerewa/hekaton/utils"
+	"github.com/muerewa/hekaton/internal/app"
 )
 
 func main() {
@@ -18,7 +18,7 @@ func main() {
 	flag.Parse()
 
 	// Parsing config
-	monitors, err := utils.LoadConfig(*configPath)
+	monitors, err := config.LoadConfig(*configPath)
 	if err != nil {
 		log.Fatalf("Config error: %v", err)
 	}
@@ -33,7 +33,7 @@ func main() {
 
 	// For every rule run a goroutine
 	for _, monitor := range monitors {
-		go core.RunMonitor(ctx, &monitor)
+		go app.RunMonitor(ctx, &monitor)
 	}
 
 	<-sigChan // Wait for a stop signal
