@@ -26,7 +26,7 @@ Hekaton — это легковесная и гибкая система мон�
 - git clone https://github.com/muerewa/hekaton.git
 - cd hekaton
 - go mod tidy
-- go build -o hekaton .
+- go build ./cmd/hekaton
 
 ### Конфигурация
 
@@ -86,7 +86,7 @@ Hekaton — это легковесная и гибкая система мон�
 
 ### Запуск
 
-./argusyaml -config config.yaml
+./hekaton -config=config.yaml
 
 ## Структура конфигурации
 
