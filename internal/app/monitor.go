@@ -6,7 +6,6 @@ import (
 	"github.com/muerewa/hekaton/internal/app/actions"
 	"github.com/muerewa/hekaton/internal/pkg/command"
 	"github.com/muerewa/hekaton/internal/pkg/helpers"
-	"log"
 	"log/slog"
 	"time"
 )
@@ -33,11 +32,11 @@ type Monitor struct {
 
 type MonitorRule struct {
 	Monitor
-	log *slog.Logger
+	Log *slog.Logger
 }
 
 // Executes actions
-func ExecuteActions(ctx context.Context, monitor *Monitor, result string) {
+func ExecuteActions(ctx context.Context, monitor *MonitorRule, result string) {
 	for _, action := range monitor.Actions {
 		switch action.Type {
 		case "bash":
@@ -47,19 +46,19 @@ func ExecuteActions(ctx context.Context, monitor *Monitor, result string) {
 			// Send message to Telegram
 			err := actions.SendTelegramMessage(monitor.Name, action.Params, result)
 			if err != nil {
-				log.Printf("%s: telegram error: %v", monitor.Name, err)
+				monitor.Log.Error(err.Error(), "name", monitor.Name)
 			}
 		case "email":
 			err := actions.SendEmail(action.Params, result)
 			if err != nil {
-				log.Printf("%s: email error: %v", monitor.Name, err)
+				monitor.Log.Error(err.Error(), "name", monitor.Name)
 			}
 		}
 	}
 }
 
 // Processes one monitor tick
-func ProcessMonitorTick(ctx context.Context, monitor *Monitor) error {
+func ProcessMonitorTick(ctx context.Context, monitor *MonitorRule) error {
 	result, err := command.VerifyBash(monitor.Name, monitor.Bash, monitor.Timeout, monitor.Retries) // Run bash command
 	if err != nil {
 		return fmt.Errorf("%s: command error: %v; exit", monitor.Name, err)
@@ -70,6 +69,8 @@ func ProcessMonitorTick(ctx context.Context, monitor *Monitor) error {
 		return fmt.Errorf("%s: compare error: %v", monitor.Name, err)
 	}
 
+	monitor.Log.Info("1 procces tick", "name", monitor.Name, "result", result, "matched", matched)
+
 	if matched {
 		ExecuteActions(ctx, monitor, result)
 	}
@@ -77,11 +78,11 @@ func ProcessMonitorTick(ctx context.Context, monitor *Monitor) error {
 }
 
 // Main monitor gouroutine function
-func RunMonitor(ctx context.Context, monitor *Monitor) {
+func RunMonitor(ctx context.Context, monitor *MonitorRule) {
 	// Setting interval value
 	interval, err := helpers.ParseDurationWithDefaults(monitor.Interval)
 	if err != nil {
-		log.Printf("%s: interval format error: %v; exit...", monitor.Name, err)
+		monitor.Log.Error(err.Error(), "name", monitor.Name)
 		return
 	}
 	// Create a ticker
@@ -93,7 +94,7 @@ func RunMonitor(ctx context.Context, monitor *Monitor) {
 		case <-ticker:
 			err = ProcessMonitorTick(ctx, monitor)
 			if err != nil {
-				log.Print(err)
+				monitor.Log.Error(err.Error(), "name", monitor.Name)
 				return
 			}
 		}

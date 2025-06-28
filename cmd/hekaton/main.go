@@ -5,6 +5,7 @@ import (
 	"flag"
 	"github.com/muerewa/hekaton/internal/pkg/config"
 	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -31,9 +32,11 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
 	// For every rule run a goroutine
 	for _, monitor := range monitors {
-		go app.RunMonitor(ctx, &monitor)
+		go app.RunMonitor(ctx, &app.MonitorRule{monitor, logger})
 	}
 
 	<-sigChan // Wait for a stop signal
